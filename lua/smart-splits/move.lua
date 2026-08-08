@@ -30,16 +30,8 @@ local M = {}
 ---@param direction SmartSplitsDirection
 ---@param opts table
 function M.move_cursor(direction, opts)
-  local same_row = config.move_cursor_same_row
   local at_edge = config.at_edge
-  if type(opts) == 'table' then
-    if opts.same_row ~= nil then
-      same_row = opts.same_row
-    end
-    if opts.at_edge ~= nil then
-      at_edge = opts.at_edge
-    end
-  end
+  local same_row = config.move_cursor_same_row
 
   local dir_key = DirectionKeys[direction]
   local offset = vim.fn.winline() + vim.api.nvim_win_get_position(0)[1]
