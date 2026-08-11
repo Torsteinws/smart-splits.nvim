@@ -1,9 +1,10 @@
 local lazy = require('smart-splits.lazy')
 local config = lazy.require_on_index('smart-splits.config') --[[@as SmartSplitsConfig]]
-local mux = lazy.require_on_exported_call('smart-splits.mux') --[[@as SmartSplitsMuxApi]]
 local win = require('smart-splits.win')
 local types = require('smart-splits.types')
+local utils = require('smart-splits.utils')
 local Direction = types.Direction
+local FloatWinBehavior = types.FloatWinBehavior
 
 local WinPosition = win.WinPosition
 local DirectionKeys = win.DirectionKeys
@@ -13,8 +14,8 @@ local M = {}
 
 M.is_resizing = false
 
----@param direction SmartSplitsDirection
----@return WincmdResizeDirection
+--- @param direction SmartSplitsDirection
+--- @return WincmdResizeDirection
 local function compute_direction_vertical(direction)
   local current_pos = win.win_position(direction)
   if current_pos == WinPosition.start or current_pos == WinPosition.middle then
@@ -23,8 +24,8 @@ local function compute_direction_vertical(direction)
   return direction == Direction.down and WincmdResizeDirection.smaller or WincmdResizeDirection.bigger
 end
 
----@param direction SmartSplitsDirection
----@return WincmdResizeDirection
+--- @param direction SmartSplitsDirection
+--- @return WincmdResizeDirection
 local function compute_direction_horizontal(direction)
   local at_left = win.at_left_edge()
   local at_right = win.at_right_edge()
@@ -68,33 +69,34 @@ local function compute_direction_horizontal(direction)
   return result
 end
 
----@param direction SmartSplitsDirection
----@param amount number
+--- Resize the current multiplexer pane
+--- @param direction SmartSplitsDirection The direction to resize the pane
+--- @param amount number The amount to resize to resize by.
+--- @return boolean did_split True if the pane was resized by the multiplexer, otherwise false
+local function multiplexer_resize(direction, amount)
+  -- TODO: Implement this
+  return false
+end
+
+--- Entrypoint for smart resize pane
+--- @param direction SmartSplitsDirection The direction to resize the pane
+--- @param amount? number The amount to resize to resize by.
 function M.resize(direction, amount)
   amount = amount or config.default_amount
 
-  if win.handle_floating_window(function()
-    mux.resize_pane(direction, amount)
-  end) then
+  local is_floating = utils.is_floating_window()
+  if config.float_win_behavior == FloatWinBehavior.mux and is_floating then
+    multiplexer_resize(direction, amount)
     return
   end
 
-  -- if a full width window and horizontal resize check if we can resize with multiplexer
-  if
-    (direction == Direction.left or direction == Direction.right)
-    and win.is_full_width()
-    and mux.resize_pane(direction, amount)
-  then
-    return
-  end
-
-  -- if a full height window and vertical resize check if we can resize with multiplexer
-  if
-    (direction == Direction.down or direction == Direction.up)
-    and win.is_full_height()
-    and (mux.resize_pane(direction, amount) or mux.get() ~= nil)
-  then
-    return
+  local is_horizontal_resize = direction == Direction.left or direction == Direction.right
+  local is_vertical_resize = direction == Direction.down or direction == Direction.up
+  if (is_horizontal_resize and win.is_full_width()) or (is_vertical_resize and win.is_full_height()) then
+    local did_resize = multiplexer_resize(direction, amount)
+    if did_resize then
+      return
+    end
   end
 
   if direction == Direction.down or direction == Direction.up then
