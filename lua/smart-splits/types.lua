@@ -13,8 +13,8 @@
 
 ---@alias SmartSplitsDirection 'left'|'right'|'up'|'down'
 
----@alias SmartSplitsAtEdgeBehavior 'split'|'wrap'|'stop'|function
----
+---@alias AtEdgeBehavior 'split'|'wrap'|'stop'
+---@alias SmartSplitsAtEdgeBehavior AtEdgeBehavior|function
 ---@alias SmartSplitsFloatWinBehavior 'previous'|'mux'
 
 ---@alias SmartSplitsMultiplexerType 'tmux'|'wezterm'|'kitty'|'zellij'|'herdr'
