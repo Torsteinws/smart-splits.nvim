@@ -2,10 +2,10 @@ local lazy = require('smart-splits.lazy')
 local config = lazy.require_on_index('smart-splits.config') --[[@as SmartSplitsConfig]]
 local mux = lazy.require_on_exported_call('smart-splits.mux') --[[@as SmartSplitsMuxApi]]
 local log = lazy.require_on_exported_call('smart-splits.log') --[[@as SmartSplitsLogger]]
-local mux_utils = require('smart-splits.mux.utils')
 local win = require('smart-splits.win')
 local resize_mod = require('smart-splits.resize')
 local move_mod = require('smart-splits.move')
+local move_prev_mod = require('smart-splits.move_previous')
 local swap_mod = require('smart-splits.swap')
 local types = require('smart-splits.types')
 local Direction = types.Direction
@@ -56,10 +56,7 @@ end, {
 })
 
 function M.move_cursor_previous()
-  local prev_win = mux_utils.get_previous_win()
-  if prev_win and vim.api.nvim_win_is_valid(prev_win) then
-    vim.api.nvim_set_current_win(prev_win)
-  end
+  move_prev_mod.move_cursor_previous()
 end
 
 function M.update_layout_details()

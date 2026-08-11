@@ -89,13 +89,6 @@ end
 ---call `on_init` and set up autocmds to call `on_init` on `VimResume`
 ---and `on_exit` on `VimSuspend` and `VimLeavePre`.
 function M.startup()
-  -- buffer tracking for "previous buffer"
-  vim.api.nvim_create_autocmd('WinLeave', {
-    callback = function()
-      prev_win = tonumber(vim.api.nvim_get_current_win())
-    end,
-  })
-
   -- multiplexer startup/shutdown events
   local mux = require('smart-splits.mux').get()
   if not mux then
