@@ -7,6 +7,8 @@ local resize_mod = require('smart-splits.resize')
 local move_mod = require('smart-splits.move')
 local move_prev_mod = require('smart-splits.move_previous')
 local swap_mod = require('smart-splits.swap')
+--- @module 'smart-splits.update_layout'
+local update_layout_mod = lazy.require_on_exported_call('smart-splits.update_layout')
 local types = require('smart-splits.types')
 local Direction = types.Direction
 
@@ -60,7 +62,7 @@ function M.move_cursor_previous()
 end
 
 function M.update_layout_details()
-  mux.update_layout_details()
+  update_layout_mod.update_layout_details()
 end
 
 return M
