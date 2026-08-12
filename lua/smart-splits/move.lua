@@ -10,6 +10,8 @@ local AtEdgeBehavior = types.AtEdgeBehavior
 local mux_utils = require('smart-splits.mux.utils')
 --- @module 'smart-splits.mux.zellij'
 local zellij = lazy.require_on_exported_call('smart-splits.mux.zellij')
+--- @module 'smart-splits.mux.wezterm'
+local wezterm = lazy.require_on_exported_call('smart-splits.mux.wezterm')
 
 local DirectionKeys = win.DirectionKeys
 local DirectionKeysReverse = win.DirectionKeysReverse
@@ -134,23 +136,29 @@ local function multiplexer_move_cursor(direction)
   --   * herdr
   --   * kitty
   --   * tmux
-  --   * wexterm
   if mux_utils.are_we_zellij() then
     return zellij.move_cursor(direction)
+  elseif mux_utils.are_we_wezterm() then
+    return wezterm.move_cursor(direction)
   else
     return false
   end
 end
 
 --- Split the current pane in the given direction.
---- @param direction SmartSplitsDirection The direction to move ('up'|'down'|'left'|'right')
+--- @param direction SmartSplitsDirection The direction to split the pane.
+--- @param size? number|nil Optional size of the new pane
 --- @return boolean did_split True if the multiplexer did split the pane, false otherwise
-local function multiplexer_split_and_focus(direction)
+local function multiplexer_split_and_focus(direction, size)
   if not mux_utils.is_mux_allowed() then
     return false
   end
 
-  return false
+  if mux_utils.are_we_wezterm() then
+    return wezterm.split_and_focus(direction, size)
+  else
+    return false
+  end
 end
 
 --- Executes a custom user-defined function to move the cursor.

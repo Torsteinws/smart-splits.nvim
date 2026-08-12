@@ -1,6 +1,9 @@
 local Direction = require('smart-splits.types').Direction
 local config = require('smart-splits.config')
 local log = require('smart-splits.log')
+local lazy = require('smart-splits.lazy')
+--- @module 'smart-splits.mux.generic'
+local generic_mux = lazy.require_on_index('smart-splits.mux.generic')
 
 local dir_keys_wezterm = {
   [Direction.left] = 'Left',
@@ -71,12 +74,7 @@ local function current_pane_info()
   return nil
 end
 
----@type SmartSplitsMultiplexer
-local M = {} ---@diagnostic disable-line: missing-fields
-
-M.type = 'wezterm'
-
-function M.current_pane_id()
+local function current_pane_id()
   local current_pane = current_pane_info()
   -- uses API that requires newest version of Wezterm
   if current_pane ~= nil then
@@ -97,25 +95,21 @@ function M.current_pane_id()
   return data[1].focused_pane_id
 end
 
-function M.current_pane_at_edge(direction)
+local function current_pane_at_edge(direction)
   -- try the new way first
   local output, code = wezterm_exec({ 'get-pane-direction', direction })
   if code == 0 then
     local ok, value = pcall(tonumber, output)
     return ok and value == nil
   end
-  local pane_id = M.current_pane_id()
+  local pane_id = current_pane_id()
   wezterm_exec({ 'activate-pane-direction', direction })
-  local new_pane_id = M.current_pane_id()
+  local new_pane_id = current_pane_id()
   wezterm_exec({ 'activate-pane', '--pane-id', pane_id })
   return pane_id == new_pane_id
 end
 
-function M.is_in_session()
-  return M.current_pane_id() ~= nil
-end
-
-function M.current_pane_is_zoomed()
+local function current_pane_is_zoomed()
   local current_pane = current_pane_info()
   if current_pane then
     return current_pane.is_zoomed
@@ -124,51 +118,77 @@ function M.current_pane_is_zoomed()
   return false
 end
 
-function M.next_pane(direction)
-  if not M.is_in_session() then
-    return false
-  end
-
+local function next_pane(direction)
   direction = dir_keys_wezterm[direction] ---@diagnostic disable-line
   local _, code = wezterm_exec({ 'activate-pane-direction', direction })
   return code == 0
 end
 
-function M.resize_pane(direction, amount)
-  if not M.is_in_session() then
+local function on_init()
+  local format_var = vim.fn['smart_splits#format_wezterm_var']
+  local write_var = vim.fn['smart_splits#write_wezterm_var']
+  write_var(format_var('true'))
+end
+
+local function on_exit()
+  local format_var = vim.fn['smart_splits#format_wezterm_var']
+  local write_var = vim.fn['smart_splits#write_wezterm_var']
+  write_var(format_var('false'))
+end
+
+local M = {}
+
+local setup_complete = false
+function M.setup()
+  if not setup_complete then
+    generic_mux.events.register({
+      on_enter_nvim = on_init,
+      on_exit_nvim = on_exit,
+    })
+    on_init()
+    setup_complete = true
+  end
+end
+
+--- @type GenericMuxMoveCursorArg
+local move_cursor_mux = {
+  current_pane_id = current_pane_id,
+  current_pane_at_edge = current_pane_at_edge,
+  current_pane_is_zoomed = current_pane_is_zoomed,
+  next_pane = next_pane,
+}
+
+--- Tries to move the cursor to the next multiplexer window in the given direction.
+--- @param direction SmartSplitsDirection The direction to move ('up'|'down'|'left'|'right')
+--- @return boolean did_move True if the cursor moved, false otherwise
+function M.move_cursor(direction)
+  return generic_mux.move_cursor(direction, move_cursor_mux)
+end
+
+--- Resize the pane with multiplexer
+--- @param direction SmartSplitsDirection The direction to resize the pane
+--- @param amount number
+function M.resize(direction, amount)
+  if config.disable_multiplexer_nav_when_zoomed and current_pane_is_zoomed() then
     return false
   end
-
   direction = dir_keys_wezterm[direction] ---@diagnostic disable-line
   local _, code = wezterm_exec({ 'adjust-pane-size', '--amount', amount, direction })
   return code == 0
 end
 
-function M.split_pane(direction, size)
+--- Splits the current multiplexer pane in a given direction.
+---@param direction SmartSplitsDirection The direction to split the pane
+---@param size? number|nil Optional size of the new pane.
+---@return boolean did_split True if the pane was successfully split (exit code 0), false otherwise.
+function M.split_and_focus(direction, size)
   local args = { 'split-pane', dir_keys_wezterm_splits[direction] }
   if size then
     table.insert(args, '--cells')
     table.insert(args, size)
   end
   local _, code = wezterm_exec(args)
-  M.update_mux_layout_details()
   return code == 0
-end
-
-function M.on_init()
-  local format_var = vim.fn['smart_splits#format_wezterm_var']
-  local write_var = vim.fn['smart_splits#write_wezterm_var']
-  write_var(format_var('true'))
-end
-
-function M.on_exit()
-  local format_var = vim.fn['smart_splits#format_wezterm_var']
-  local write_var = vim.fn['smart_splits#write_wezterm_var']
-  write_var(format_var('false'))
-end
-
-function M.update_mux_layout_details()
-  -- Not implemented yet - check Kitty mux for reference
 end
 
 return M

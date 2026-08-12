@@ -9,6 +9,8 @@ local FloatWinBehavior = types.FloatWinBehavior
 local mux_utils = require('smart-splits.mux.utils')
 --- @module 'smart-splits.mux.zellij'
 local zellij = lazy.require_on_exported_call('smart-splits.mux.zellij')
+--- @module 'smart-splits.mux.wezterm'
+local wezterm = lazy.require_on_exported_call('smart-splits.mux.wezterm')
 
 local WinPosition = win.WinPosition
 local DirectionKeys = win.DirectionKeys
@@ -90,6 +92,8 @@ local function multiplexer_resize(direction, amount)
   --   * wexterm
   if mux_utils.are_we_zellij() then
     return zellij.resize(direction)
+  elseif mux_utils.are_we_wezterm() then
+    return wezterm.resize(direction, amount)
   else
     return false
   end
