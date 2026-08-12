@@ -98,46 +98,4 @@ function M.try_find_wezterm()
   return 'wezterm'
 end
 
-local prev_win = nil
-
----Return the buf ID of the previous buffer, if there is one
----@return number|nil
-function M.get_previous_win()
-  return prev_win
-end
-
----Initialization for mux capabilities.
----If selected mux has an `on_init` or `on_exit`,
----call `on_init` and set up autocmds to call `on_init` on `VimResume`
----and `on_exit` on `VimSuspend` and `VimLeavePre`.
-function M.startup()
-  -- multiplexer startup/shutdown events
-  local mux = require('smart-splits.mux').get()
-  if not mux then
-    return
-  end
-  if mux.on_init then
-    mux.on_init()
-    vim.api.nvim_create_autocmd('VimResume', {
-      callback = function()
-        mux.on_init()
-      end,
-    })
-  end
-  if mux.on_exit then
-    vim.api.nvim_create_autocmd({ 'VimSuspend', 'VimLeavePre' }, {
-      callback = function()
-        mux.on_exit()
-      end,
-    })
-  end
-  if mux.update_mux_layout_details then
-    vim.api.nvim_create_autocmd({ 'VimResume', 'VimEnter', 'VimResized', 'FocusGained' }, {
-      callback = function()
-        mux.update_mux_layout_details()
-      end,
-    })
-  end
-end
-
 return M

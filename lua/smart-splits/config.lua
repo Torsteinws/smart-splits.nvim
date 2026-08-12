@@ -5,6 +5,7 @@ local AtEdgeBehavior = types.AtEdgeBehavior
 local FloatWinBehavior = types.FloatWinBehavior
 local Multiplexer = types.Multiplexer
 local mux_utils = require('smart-splits.mux.utils')
+local mux = require('smart-splits.mux')
 
 ---@class SmartResizeModeConfig
 ---@field quit_key string
@@ -126,7 +127,7 @@ function M.setup(new_config)
     and #tostring(original_mux or '') == 0
     and original_mux ~= config.multiplexer_integration
   then
-    mux_utils.startup()
+    mux.setup()
   end
 
   -- check for incompatible kitty settings
