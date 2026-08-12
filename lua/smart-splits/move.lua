@@ -125,15 +125,7 @@ end
 --- @param direction SmartSplitsDirection The direction to move ('up'|'down'|'left'|'right')
 --- @return boolean did_move True if the cursor moved, false otherwise
 local function multiplexer_move_cursor(direction)
-  if
-    config.multiplexer_integration == nil
-    or config.multiplexer_integration == false
-    or #tostring(config.multiplexer_integration or '') == 0
-  then
-    return false
-  end
-
-  if mux_utils.are_we_gui() then
+  if not mux_utils.is_mux_allowed() then
     return false
   end
 
@@ -145,16 +137,19 @@ local function multiplexer_move_cursor(direction)
   --   * wexterm
   if mux_utils.are_we_zellij() then
     return zellij.move_cursor(direction)
+  else
+    return false
   end
-
-  return false
 end
 
 --- Split the current pane in the given direction.
 --- @param direction SmartSplitsDirection The direction to move ('up'|'down'|'left'|'right')
 --- @return boolean did_split True if the multiplexer did split the pane, false otherwise
 local function multiplexer_split_and_focus(direction)
-  -- TODO: Implement
+  if not mux_utils.is_mux_allowed() then
+    return false
+  end
+
   return false
 end
 

@@ -78,15 +78,7 @@ end
 --- @param amount number The amount to resize to resize by.
 --- @return boolean did_split True if the pane was resized by the multiplexer, otherwise false
 local function multiplexer_resize(direction, amount)
-  if
-    config.multiplexer_integration == nil
-    or config.multiplexer_integration == false
-    or #tostring(config.multiplexer_integration or '') == 0
-  then
-    return false
-  end
-
-  if mux_utils.are_we_gui() then
+  if not mux_utils.is_mux_allowed() then
     return false
   end
 
@@ -96,12 +88,11 @@ local function multiplexer_resize(direction, amount)
   --   * kitty
   --   * tmux
   --   * wexterm
-  local did_resize = false
   if mux_utils.are_we_zellij() then
-    did_resize = zellij.resize(direction)
+    return zellij.resize(direction)
+  else
+    return false
   end
-
-  return did_resize
 end
 
 --- Entrypoint for smart resize pane

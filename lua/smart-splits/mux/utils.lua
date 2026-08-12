@@ -1,4 +1,26 @@
+local lazy = require('smart-splits.lazy')
+--- @module 'smart-splits.config'
+local config = lazy.require_on_index('smart-splits.config')
+
 local M = {}
+
+--- Check if we are allowed to use multiplexer integrations
+--- @return boolean True if we are allowed to use multiplexer integration, otherwise false
+function M.is_mux_allowed()
+  if
+    config.multiplexer_integration == nil
+    or config.multiplexer_integration == false
+    or #tostring(config.multiplexer_integration or '') == 0
+  then
+    return false
+  end
+
+  if M.are_we_gui() then
+    return false
+  end
+
+  return true
+end
 
 function M.are_we_tmux()
   if M.are_we_gui() then
