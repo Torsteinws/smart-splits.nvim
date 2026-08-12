@@ -7,6 +7,9 @@ local types = require('smart-splits.types')
 local Direction = types.Direction
 local FloatWinBehavior = types.FloatWinBehavior
 local AtEdgeBehavior = types.AtEdgeBehavior
+local mux_utils = require('smart-splits.mux.utils')
+--- @module 'smart-splits.mux.zellij'
+local zellij = lazy.require_on_exported_call('smart-splits.mux.zellij')
 
 local DirectionKeys = win.DirectionKeys
 local DirectionKeysReverse = win.DirectionKeysReverse
@@ -122,7 +125,28 @@ end
 --- @param direction SmartSplitsDirection The direction to move ('up'|'down'|'left'|'right')
 --- @return boolean did_move True if the cursor moved, false otherwise
 local function multiplexer_move_cursor(direction)
-  -- TODO: Implement
+  if
+    config.multiplexer_integration == nil
+    or config.multiplexer_integration == false
+    or #tostring(config.multiplexer_integration or '') == 0
+  then
+    return false
+  end
+
+  if mux_utils.are_we_gui() then
+    return false
+  end
+
+  -- TODO:
+  -- Implement integration for:
+  --   * herdr
+  --   * kitty
+  --   * tmux
+  --   * wexterm
+  if mux_utils.are_we_zellij() then
+    return zellij.move_cursor(direction)
+  end
+
   return false
 end
 

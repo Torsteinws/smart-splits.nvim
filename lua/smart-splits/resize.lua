@@ -6,6 +6,10 @@ local utils = require('smart-splits.utils')
 local Direction = types.Direction
 local FloatWinBehavior = types.FloatWinBehavior
 
+local mux_utils = require('smart-splits.mux.utils')
+--- @module 'smart-splits.mux.zellij'
+local zellij = lazy.require_on_exported_call('smart-splits.mux.zellij')
+
 local WinPosition = win.WinPosition
 local DirectionKeys = win.DirectionKeys
 local WincmdResizeDirection = win.WincmdResizeDirection
@@ -74,8 +78,30 @@ end
 --- @param amount number The amount to resize to resize by.
 --- @return boolean did_split True if the pane was resized by the multiplexer, otherwise false
 local function multiplexer_resize(direction, amount)
-  -- TODO: Implement this
-  return false
+  if
+    config.multiplexer_integration == nil
+    or config.multiplexer_integration == false
+    or #tostring(config.multiplexer_integration or '') == 0
+  then
+    return false
+  end
+
+  if mux_utils.are_we_gui() then
+    return false
+  end
+
+  -- TODO:
+  -- Implement integration for:
+  --   * herdr
+  --   * kitty
+  --   * tmux
+  --   * wexterm
+  local did_resize = false
+  if mux_utils.are_we_zellij() then
+    did_resize = zellij.resize(direction)
+  end
+
+  return did_resize
 end
 
 --- Entrypoint for smart resize pane
