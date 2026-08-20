@@ -59,6 +59,23 @@ function M.are_we_gui()
   return current_ui ~= nil and not current_ui.stdin_tty and not current_ui.stdout_tty
 end
 
+--- Tries to locate the WezTerm executable in the system `PATH`.
+--- @return 'wezterm.exe'|'org.wezfurlong.wezterm'|'wezterm' executable The resolved executable name, defaulting to `'wezterm'` if no alternative is found.
+function M.try_find_wezterm()
+  -- Windows path
+  if vim.fn.executable('wezterm.exe') == 1 then
+    return 'wezterm.exe'
+  end
+
+  -- Flatpak path
+  if vim.fn.executable('org.wezfurlong.wezterm') == 1 then
+    return 'org.wezfurlong.wezterm'
+  end
+
+  -- Default value
+  return 'wezterm'
+end
+
 local prev_win = nil
 
 ---Return the buf ID of the previous buffer, if there is one

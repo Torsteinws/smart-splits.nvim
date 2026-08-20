@@ -31,7 +31,7 @@ local mux_utils = require('smart-splits.mux.utils')
 
 ---@type SmartSplitsConfig
 local config = { ---@diagnostic disable-line:missing-fields
-  wezterm_cli_path = mux_utils.are_we_WSL() and 'wezterm.exe' or 'wezterm',
+  wezterm_cli_path = mux_utils.try_find_wezterm(),
   ignored_buftypes = {
     'nofile',
     'quickfix',
